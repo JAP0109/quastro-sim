@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Simulation Hub</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #0d1117; /* Deep space dark theme */
+            color: #c9d1d9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #58a6ff; /* Science blue */
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1.1rem;
+            color: #8b949e;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 900px;
+        }
+        .module-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+            text-decoration: none; /* Removes underline from links */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .module-card:hover {
+            transform: translateY(-5px);
+            border-color: #58a6ff;
+            box-shadow: 0 8px 24px rgba(88, 166, 255, 0.1);
+        }
+        .module-title {
+            font-size: 1.5rem;
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+        .module-desc {
+            font-size: 0.95rem;
+            color: #8b949e;
+            margin-bottom: 25px;
+        }
+        .launch-btn {
+            background-color: #238636; /* GitHub green */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Quastro</h1>
+        <p>Select a simulation module below. </p>
+    </header>
+
+    <div class="grid-container">
+        <a href="module1.html" class="module-card">
+            <div>
+                <h2 class="module-title">SIM-1</h2>
+                <p class="module-desc">Explore Alpha Decay rates, Quantum Tunneling probability through potential energy barriers and Cosmic Ray Showering.</p>
+            </div>
+            <span class="launch-btn">Launch Simulator</span>
+        </a>
+
+        <a href="module2.html" class="module-card">
+            <div>
+                <h2 class="module-title">SIM-2</h2>
+                <p class="module-desc">Advanced sandbox featuring Neutrino Oscillations, Cherenkov Radiation, and WIMP scattering.</p>
+            </div>
+            <span class="launch-btn">Launch Simulator</span>
+        </a>
+    </div>
+
+</body>
+</html>

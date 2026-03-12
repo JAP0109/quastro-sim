@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroQuantum Physics Engine</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-panel: #1e1e1e;
+            --bg-card: #2d2d2d;
+            --accent-blue: #007acc;
+            --accent-green: #28a745;
+            --text-main: #e0e0e0;
+            --text-muted: #aaaaaa;
+            --border-color: #333333;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        #sidebar {
+            width: 320px;
+            background-color: var(--bg-panel);
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #canvas-container {
+            flex: 2;
+            position: relative;
+            background-color: #000000;
+            overflow: hidden;
+        }
+
+        #simCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #bottom-panel {
+            flex: 1;
+            background-color: var(--bg-panel);
+            border-top: 1px solid var(--border-color);
+            padding: 15px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chartCanvas {
+            flex: 1;
+            width: 100%;
+            display: block;
+            background-color: #181818;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: crosshair;
+        }
+
+        #info-panel {
+            width: 380px;
+            background-color: var(--bg-panel);
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            border-left: 1px solid var(--border-color);
+        }
+
+        /* Typography & Controls */
+        h1, h2, h3, h4 {
+            margin: 0 0 10px 0;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        h1 { font-size: 20px; border-bottom: 2px solid var(--accent-blue); padding-bottom: 10px; }
+        h2 { font-size: 16px; }
+        h3 { font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        .control-group {
+            background-color: var(--bg-card);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .control-value {
+            font-family: monospace;
+            color: var(--accent-blue);
+        }
+
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--accent-blue);
+        }
+
+        button {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background 0.2s;
+            margin-bottom: 10px;
+        }
+
+        button:hover { background-color: #005f9e; }
+        button.success { background-color: var(--accent-green); }
+        button.success:hover { background-color: #218838; }
+        button.active { box-shadow: 0 0 0 2px #fff inset; }
+
+        /* Educational Content Styles */
+        .info-card {
+            background-color: var(--bg-card);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .equation {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #111;
+            padding: 10px;
+            display: block;
+            text-align: center;
+            margin: 10px 0;
+            color: #569cd6;
+            border-radius: 4px;
+            border: 1px solid #444;
+            font-size: 16px;
+        }
+
+        .analogy {
+            border-left: 3px solid var(--accent-blue);
+            padding-left: 10px;
+            margin-top: 10px;
+            color: #cccccc;
+            font-style: italic;
+        }
+
+        /* Overlays */
+        #sim-overlay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: white;
+            font-family: monospace;
+            font-size: 14px;
+            pointer-events: none;
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Sidebar: Controls -->
+    <div id="sidebar">
+        <h1>AstroQuantum Engine</h1>
+        
+        <div>
+            <h3>Global Variables</h3>
+            <div class="control-group">
+                <div class="control-header">
+                    <label>Particle Mass (m)</label>
+                    <span class="control-value" id="val-mass">1.0</span>
+                </div>
+                <input type="range" id="mass" min="0.1" max="5.0" step="0.1" value="1.0">
+            </div>
+            <div class="control-group">
+                <div class="control-header">
+                    <label>Initial Energy (E)</label>
+                    <span class="control-value" id="val-energy">150 eV</span>
+                </div>
+                <input type="range" id="energy" min="10" max="500" step="10" value="150">
+            </div>
+        </div>
+
+        <div>
+            <h3>Tunneling Parameters</h3>
+            <div class="control-group">
+                <div class="control-header">
+                    <label>Barrier Potential (V)</label>
+                    <span class="control-value" id="val-potential">200 eV</span>
+                </div>
+                <input type="range" id="potential" min="50" max="500" step="10" value="200">
+            </div>
+            <div class="control-group">
+                <div class="control-header">
+                    <label>Barrier Width (a)</label>
+                    <span class="control-value" id="val-width">50 nm</span>
+                </div>
+                <input type="range" id="barrierWidth" min="10" max="150" step="5" value="50">
+            </div>
+        </div>
+
+        <div>
+            <h3>Decay Parameters</h3>
+            <div class="control-group">
+                <div class="control-header">
+                    <label>Half-Life (t₁/₂)</label>
+                    <span class="control-value" id="val-halflife">100 ms</span>
+                </div>
+                <input type="range" id="halfLife" min="10" max="500" step="10" value="100">
+            </div>
+        </div>
+
+        <div>
+            <h3>Simulation Modes</h3>
+            <button id="btnTunneling" class="sim-btn active">Quantum Tunneling</button>
+            <button id="btnDecay" class="sim-btn">Alpha Decay</button>
+            <button id="btnCosmic" class="sim-btn">Cosmic Ray Shower</button>
+        </div>
+
+        <div style="margin-top: auto;">
+            <button id="btnExport" class="success">Export Data to CSV</button>
+        </div>
+    </div>
+
+    <!-- Main Center: Simulation & Charts -->
+    <div id="main-content">
+        <div id="canvas-container">
+            <canvas id="simCanvas"></canvas>
+            <div id="sim-overlay">
+                Mode: <span id="overlay-mode">Quantum Tunneling</span><br>
+                Particles: <span id="overlay-count">0</span><br>
+                Time: <span id="overlay-time">0.00</span>s
+            </div>
+        </div>
+        <div id="bottom-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3>Real-time Analytics</h3>
+                <span style="font-size: 12px; color: var(--text-muted);">Blue: Total Energy | Red: Particle Count (Hover for details)</span>
+            </div>
+            <canvas id="chartCanvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Right Sidebar: Educational Content -->
+    <div id="info-panel">
+        <h1>Information Module</h1>
+        
+        <div class="info-card" id="info-tunneling">
+            <h2>Quantum Tunneling</h2>
+            <p>A quantum mechanical phenomenon where a subatomic particle passes through a potential barrier that it classically does not have enough energy to surmount.</p>
+            <span class="equation">T ≈ e<sup>-2a√(2m(V-E))/ℏ</sup></span>
+            <p><strong>Variables:</strong><br>
+            T = Transmission Probability<br>
+            a = Barrier Width<br>
+            V = Barrier Potential Energy<br>
+            E = Particle Kinetic Energy<br>
+            m = Particle Mass</p>
+            <div class="analogy">
+                <strong>Analogy:</strong> Imagine throwing a tennis ball at a brick wall. Classically, it bounces back 100% of the time. In quantum mechanics, the ball is a probability wave. A tiny fraction of that wave "leaks" through the wall, meaning there is a non-zero chance the ball simply appears on the other side.
+            </div>
+        </div>
+
+        <div class="info-card" id="info-decay" style="display: none;">
+            <h2>Alpha Decay</h2>
+            <p>A type of radioactive decay in which an atomic nucleus emits an alpha particle (helium nucleus) and thereby transforms or 'decays' into a different atomic nucleus.</p>
+            <span class="equation">N(t) = N₀e<sup>-λt</sup></span>
+            <p><strong>Variables:</strong><br>
+            N(t) = Quantity remaining at time t<br>
+            N₀ = Initial quantity<br>
+            λ = Decay constant (ln(2) / t₁/₂)</p>
+            <div class="analogy">
+                <strong>Analogy:</strong> Think of popping popcorn. You know the batch will pop when heated, and you can predict the overall rate. However, it is fundamentally impossible to predict exactly <em>when</em> one specific kernel will explode. It is a probabilistic event.
+            </div>
+        </div>
+
+        <div class="info-card" id="info-cosmic" style="display: none;">
+            <h2>Cosmic Ray Showers</h2>
+            <p>Extensive Air Showers (EAS) occur when a high-energy primary cosmic ray (like a proton) enters the atmosphere, colliding with atmospheric nuclei to produce a cascade of secondary particles (pions, muons, electrons).</p>
+            <span class="equation">E<sub>primary</sub> = Σ E<sub>secondary</sub> + E<sub>loss</sub></span>
+            <p>Energy is distributed among newly created particles, converting kinetic energy into mass (E=mc²).</p>
+            <div class="analogy">
+                <strong>Analogy:</strong> Like a break in billiards. One high-energy cue ball hits the tightly packed triangle of balls, transferring its energy and scattering dozens of balls forward in a cone-shaped cascade.
+            </div>
+        </div>
+    </div>
+
+    <!-- Physics Engine & Application Logic -->
+    <script>
+        /**
+         * CORE PHYSICS ENGINE & APPLICATION STATE
+         */
+        const state = {
+            mode: 'tunneling', // 'tunneling', 'decay', 'cosmic'
+            mass: 1.0,
+            energy: 150,
+            potential: 200,
+            barrierWidth: 50,
+            halfLife: 100,
+            time: 0,
+            isRunning: true,
+            particles: [],
+            dataLog: [],
+            chartData: []
+        };
+
+        // Constants
+        const HBAR = 1.0; // Simplified for simulation scale
+        const DT = 0.016; // Assuming ~60fps
+        const MAX_CHART_POINTS = 300; // Max points to keep in the chart
+
+        // DOM Elements
+        const simCanvas = document.getElementById('simCanvas');
+        const simCtx = simCanvas.getContext('2d');
+        const chartCanvas = document.getElementById('chartCanvas');
+        const chartCtx = chartCanvas.getContext('2d');
+
+        // Resize handler
+        function resizeCanvases() {
+            const container = document.getElementById('canvas-container');
+            simCanvas.width = container.clientWidth;
+            simCanvas.height = container.clientHeight;
+            
+            const bottomPanel = document.getElementById('bottom-panel');
+            chartCanvas.width = bottomPanel.clientWidth - 30; // minus padding
+            chartCanvas.height = bottomPanel.clientHeight - 50;
+        }
+        window.addEventListener('resize', resizeCanvases);
+        resizeCanvases();
+
+        // Chart Mouse Tracking
+        let chartHoverX = -1;
+        chartCanvas.addEventListener('mousemove', (e) => {
+            const rect = chartCanvas.getBoundingClientRect();
+            chartHoverX = e.clientX - rect.left;
+        });
+        chartCanvas.addEventListener('mouseleave', () => {
+            chartHoverX = -1;
+        });
+
+        /**
+         * PARTICLE CLASS
+         */
+        class Particle {
+            constructor(id, x, y, vx, vy, mass, energy, type) {
+                this.id = id;
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.mass = mass;
+                this.energy = energy;
+                this.type = type; // 'primary', 'alpha', 'daughter', 'secondary'
+                this.active = true;
+                this.stateFlag = 'incident'; // For tunneling: incident, reflected, transmitted
+            }
+
+            update() {
+                if (!this.active) return;
+
+                // Move
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Boundary checks
+                if (this.x < -100 || this.x > simCanvas.width + 100 || 
+                    this.y < -100 || this.y > simCanvas.height + 100) {
+                    this.active = false;
+                }
+            }
+
+            draw(ctx) {
+                if (!this.active) return;
+
+                // Color mapping based on energy (Blue = low, Red = high)
+                const maxE = state.mode === 'cosmic' ? 1000 : 500;
+                const hue = Math.max(0, 240 - (this.energy / maxE) * 240);
+                
+                ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                
+                // Optimized rendering: 1x1 or 2x2 fillRect instead of arcs/shadows
+                const size = this.mass > 1.5 ? 2 : 1;
+                ctx.fillRect(this.x - size/2, this.y - size/2, size, size);
+            }
+        }
+
+        /**
+         * MATHEMATICAL MODELS
+         */
+
+        // 1. Quantum Tunneling
+        function calculateTunnelingProbability(E, V, a, m) {
+            if (E >= V) return 1.0; // Classical transmission
+            // γ = √(2m(V-E)) / ℏ
+            const gamma = Math.sqrt(2 * m * (V - E)) / HBAR;
+            // Scale 'a' for visual simulation purposes so probabilities aren't infinitesimally small
+            const scaledA = a * 0.05; 
+            // T ≈ e^(-2γa)
+            const T = Math.exp(-2 * gamma * scaledA);
+            return T;
+        }
+
+        // 2. Alpha Decay
+        function checkAlphaDecay(halfLife, dt) {
+            // λ = ln(2) / t₁/₂
+            const lambda = Math.LN2 / halfLife;
+            // P = λ * dt
+            const prob = lambda * (dt * 100); // Scaled dt for visual pacing
+            return Math.random() < prob;
+        }
+
+        // 3. Cosmic Ray Showers
+        function generateCosmicShower(parentParticle) {
+            const secondaries = [];
+            // Number of particles created depends on parent energy
+            const numParticles = Math.floor(Math.random() * 3) + 2; 
+            const energyPerParticle = (parentParticle.energy * 0.9) / numParticles; // 10% lost
+
+            for (let i = 0; i < numParticles; i++) {
+                // Spread angle
+                const angleSpread = (Math.random() - 0.5) * 0.5;
+                const speed = Math.sqrt(energyPerParticle) * 0.5;
+                
+                // Calculate new velocities based on parent direction + spread
+                const baseAngle = Math.atan2(parentParticle.vy, parentParticle.vx);
+                const newAngle = baseAngle + angleSpread;
+                
+                const vx = Math.cos(newAngle) * speed;
+                const vy = Math.sin(newAngle) * speed;
+
+                secondaries.push(new Particle(
+                    generateId(),
+                    parentParticle.x,
+                    parentParticle.y,
+                    vx,
+                    vy,
+                    0.5, // lighter mass
+                    energyPerParticle,
+                    'secondary'
+                ));
+            }
+            return secondaries;
+        }
+
+        /**
+         * SIMULATION LOGIC
+         */
+        let particleCounter = 0;
+        function generateId() { return `P-${++particleCounter}`; }
+
+        function spawnParticle() {
+            if (state.mode === 'tunneling') {
+                // Spawn left, move right
+                const speed = Math.sqrt(state.energy) * 0.2;
+                state.particles.push(new Particle(
+                    generateId(),
+                    0, simCanvas.height / 2 + (Math.random() * 20 - 10),
+                    speed, 0,
+                    state.mass,
+                    state.energy,
+                    'primary'
+                ));
+            } else if (state.mode === 'decay') {
+                // Spawn center, stationary heavy nucleus
+                state.particles.push(new Particle(
+                    generateId(),
+                    simCanvas.width / 2, simCanvas.height / 2,
+                    0, 0,
+                    5.0, // Heavy mass
+                    state.energy,
+                    'nucleus'
+                ));
+            } else if (state.mode === 'cosmic') {
+                // Spawn top, move down
+                const speed = Math.sqrt(state.energy) * 0.2;
+                state.particles.push(new Particle(
+                    generateId(),
+                    simCanvas.width / 2 + (Math.random() * 100 - 50), 0,
+                    (Math.random() - 0.5), speed,
+                    state.mass,
+                    state.energy,
+                    'primary'
+                ));
+            }
+        }
+
+        function resetSimulation() {
+            state.particles = [];
+            state.time = 0;
+            state.chartData = [];
+            particleCounter = 0;
+            simCtx.clearRect(0, 0, simCanvas.width, simCanvas.height);
+            spawnParticle();
+        }
+
+        function logSimulationData() {
+            // Log data for CSV export. Throttle to prevent memory crash.
+            if (state.dataLog.length > 50000) return; 
+
+            state.particles.forEach(p => {
+                if (p.active && Math.random() < 0.1) { // Sample 10% of frames
+                    state.dataLog.push({
+                        Time: state.time.toFixed(3),
+                        ParticleID: p.id,
+                        Type: p.type,
+                        State: p.stateFlag,
+                        Energy_eV: p.energy.toFixed(2),
+                        PosX: p.x.toFixed(2),
+                        PosY: p.y.toFixed(2)
+                    });
+                }
+            });
+        }
+
+        function updatePhysics() {
+            const barrierX = simCanvas.width / 2;
+            const barrierW = state.barrierWidth;
+
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                const p = state.particles[i];
+                if (!p.active) continue;
+
+                p.update();
+
+                // Mode-specific physics
+                if (state.mode === 'tunneling') {
+                    // Check barrier collision
+                    if (p.stateFlag === 'incident' && p.x + p.vx >= barrierX - barrierW/2 && p.x <= barrierX) {
+                        const T = calculateTunnelingProbability(p.energy, state.potential, state.barrierWidth, p.mass);
+                        
+                        if (Math.random() < T) {
+                            // Tunneled!
+                            p.stateFlag = 'transmitted';
+                            // Visually skip through barrier
+                            p.x = barrierX + barrierW/2 + 5; 
+                        } else {
+                            // Reflected
+                            p.stateFlag = 'reflected';
+                            p.vx = -p.vx;
+                        }
+                    }
+                } 
+                else if (state.mode === 'decay') {
+                    if (p.type === 'nucleus') {
+                        if (checkAlphaDecay(state.halfLife, DT)) {
+                            p.active = false;
+                            // Create Alpha particle
+                            const angle = Math.random() * Math.PI * 2;
+                            const alphaSpeed = 5;
+                            state.particles.push(new Particle(
+                                generateId(), p.x, p.y,
+                                Math.cos(angle) * alphaSpeed, Math.sin(angle) * alphaSpeed,
+                                1.0, state.energy * 0.8, 'alpha'
+                            ));
+                            // Daughter nucleus recoil
+                            state.particles.push(new Particle(
+                                generateId(), p.x, p.y,
+                                Math.cos(angle + Math.PI) * (alphaSpeed * 0.2), Math.sin(angle + Math.PI) * (alphaSpeed * 0.2),
+                                4.0, state.energy * 0.2, 'daughter'
+                            ));
+                        }
+                    }
+                }
+                else if (state.mode === 'cosmic') {
+                    // Probability of interaction increases as it goes deeper (y increases)
+                    const depthProb = (p.y / simCanvas.height) * 0.02;
+                    if (p.energy > 10 && Math.random() < depthProb) {
+                        p.active = false;
+                        const shower = generateCosmicShower(p);
+                        state.particles.push(...shower);
+                    }
+                }
+            }
+
+            // Auto-respawn logic to keep simulation running
+            const activeCount = state.particles.filter(p => p.active).length;
+            if (activeCount === 0 || (state.mode === 'tunneling' && Math.random() < 0.02)) {
+                if (state.particles.length < 10000) spawnParticle(); // Cap at 10k to prevent runaway
+            }
+        }
+
+        /**
+         * VISUALIZATION & RENDER LOOP
+         */
+        function drawCanvas() {
+            // Fade effect for trails (using fillRect for performance)
+            simCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            simCtx.fillRect(0, 0, simCanvas.width, simCanvas.height);
+
+            // Draw Environment
+            if (state.mode === 'tunneling') {
+                const barrierX = simCanvas.width / 2;
+                const barrierW = state.barrierWidth;
+                
+                // Draw Potential Barrier
+                simCtx.fillStyle = `rgba(255, 78, 0, ${state.potential / 500})`;
+                simCtx.fillRect(barrierX - barrierW/2, 0, barrierW, simCanvas.height);
+                
+                simCtx.strokeStyle = 'rgba(255, 78, 0, 0.8)';
+                simCtx.lineWidth = 2;
+                simCtx.beginPath();
+                simCtx.moveTo(barrierX - barrierW/2, 0); simCtx.lineTo(barrierX - barrierW/2, simCanvas.height);
+                simCtx.moveTo(barrierX + barrierW/2, 0); simCtx.lineTo(barrierX + barrierW/2, simCanvas.height);
+                simCtx.stroke();
+            }
+
+            // Draw Particles
+            state.particles.forEach(p => p.draw(simCtx));
+        }
+
+        let frameCount = 0;
+        function updateChartData() {
+            frameCount++;
+            if (frameCount % 10 !== 0) return; // Update chart 6 times a second
+
+            let totalEnergy = 0;
+            let activeCount = 0;
+            state.particles.forEach(p => {
+                if (p.active) {
+                    totalEnergy += p.energy;
+                    activeCount++;
+                }
+            });
+
+            state.chartData.push({ 
+                time: state.time, 
+                energy: totalEnergy, 
+                count: activeCount 
+            });
+
+            if (state.chartData.length > MAX_CHART_POINTS) {
+                state.chartData.shift();
+            }
+        }
+
+        function drawChart() {
+            chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            if (state.chartData.length === 0) return;
+
+            const maxE = Math.max(...state.chartData.map(d => d.energy), 100);
+            const maxC = Math.max(...state.chartData.map(d => d.count), 10);
+            const xStep = chartCanvas.width / Math.max(state.chartData.length - 1, 1);
+
+            // Draw Energy Line (Blue)
+            chartCtx.beginPath();
+            chartCtx.strokeStyle = '#007acc';
+            chartCtx.lineWidth = 2;
+            state.chartData.forEach((d, i) => {
+                const x = i * xStep;
+                const y = chartCanvas.height - (d.energy / maxE) * chartCanvas.height;
+                if (i === 0) chartCtx.moveTo(x, y);
+                else chartCtx.lineTo(x, y);
+            });
+            chartCtx.stroke();
+
+            // Draw Count Line (Red)
+            chartCtx.beginPath();
+            chartCtx.strokeStyle = '#dc3545';
+            chartCtx.lineWidth = 2;
+            state.chartData.forEach((d, i) => {
+                const x = i * xStep;
+                const y = chartCanvas.height - (d.count / maxC) * chartCanvas.height;
+                if (i === 0) chartCtx.moveTo(x, y);
+                else chartCtx.lineTo(x, y);
+            });
+            chartCtx.stroke();
+
+            // Draw Crosshair and Tooltip on Hover
+            if (chartHoverX >= 0 && chartHoverX <= chartCanvas.width) {
+                let index = Math.round(chartHoverX / xStep);
+                if (index < 0) index = 0;
+                if (index >= state.chartData.length) index = state.chartData.length - 1;
+                
+                const pt = state.chartData[index];
+                const x = index * xStep;
+
+                // Vertical Crosshair Line
+                chartCtx.beginPath();
+                chartCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                chartCtx.lineWidth = 1;
+                chartCtx.setLineDash([5, 5]);
+                chartCtx.moveTo(x, 0);
+                chartCtx.lineTo(x, chartCanvas.height);
+                chartCtx.stroke();
+                chartCtx.setLineDash([]);
+
+                // Draw points on the lines
+                const yE = chartCanvas.height - (pt.energy / maxE) * chartCanvas.height;
+                const yC = chartCanvas.height - (pt.count / maxC) * chartCanvas.height;
+                
+                chartCtx.beginPath();
+                chartCtx.fillStyle = '#007acc';
+                chartCtx.arc(x, yE, 4, 0, Math.PI * 2);
+                chartCtx.fill();
+                
+                chartCtx.beginPath();
+                chartCtx.fillStyle = '#dc3545';
+                chartCtx.arc(x, yC, 4, 0, Math.PI * 2);
+                chartCtx.fill();
+
+                // Tooltip Box
+                const tooltipW = 140;
+                const tooltipH = 60;
+                let tooltipX = x + 10;
+                let tooltipY = 10;
+                
+                // Keep tooltip inside canvas bounds
+                if (tooltipX + tooltipW > chartCanvas.width) {
+                    tooltipX = x - tooltipW - 10;
+                }
+
+                chartCtx.fillStyle = 'rgba(20, 20, 20, 0.9)';
+                chartCtx.strokeStyle = '#444';
+                chartCtx.lineWidth = 1;
+                chartCtx.fillRect(tooltipX, tooltipY, tooltipW, tooltipH);
+                chartCtx.strokeRect(tooltipX, tooltipY, tooltipW, tooltipH);
+
+                // Tooltip Text
+                chartCtx.fillStyle = '#fff';
+                chartCtx.font = '12px monospace';
+                chartCtx.fillText(`Time:   ${pt.time.toFixed(2)}s`, tooltipX + 8, tooltipY + 18);
+                chartCtx.fillStyle = '#dc3545';
+                chartCtx.fillText(`Count:  ${pt.count}`, tooltipX + 8, tooltipY + 34);
+                chartCtx.fillStyle = '#007acc';
+                chartCtx.fillText(`Energy: ${pt.energy.toFixed(0)} eV`, tooltipX + 8, tooltipY + 50);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('overlay-mode').innerText = 
+                state.mode === 'tunneling' ? 'Quantum Tunneling' : 
+                state.mode === 'decay' ? 'Alpha Decay' : 'Cosmic Ray Shower';
+            
+            document.getElementById('overlay-count').innerText = state.particles.filter(p => p.active).length;
+            document.getElementById('overlay-time').innerText = state.time.toFixed(2);
+        }
+
+        function loop() {
+            if (state.isRunning) {
+                state.time += DT;
+                updatePhysics();
+                drawCanvas();
+                updateChartData();
+                drawChart();
+                logSimulationData();
+                updateUI();
+            }
+            requestAnimationFrame(loop);
+        }
+
+        /**
+         * EVENT LISTENERS & EXPORT
+         */
+        
+        // Inputs
+        const inputs = ['mass', 'energy', 'potential', 'barrierWidth', 'halfLife'];
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            const valEl = document.getElementById(`val-${id.toLowerCase()}`);
+            el.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                state[id] = val;
+                
+                // Update display
+                let unit = '';
+                if (id === 'energy' || id === 'potential') unit = ' eV';
+                if (id === 'barrierWidth') unit = ' nm';
+                if (id === 'halfLife') unit = ' ms';
+                if (valEl) valEl.innerText = val + unit;
+            });
+        });
+
+        // Mode Buttons
+        function setMode(mode, btnId) {
+            state.mode = mode;
+            document.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(btnId).classList.add('active');
+            
+            // Toggle Info Cards
+            document.getElementById('info-tunneling').style.display = mode === 'tunneling' ? 'block' : 'none';
+            document.getElementById('info-decay').style.display = mode === 'decay' ? 'block' : 'none';
+            document.getElementById('info-cosmic').style.display = mode === 'cosmic' ? 'block' : 'none';
+
+            // Adjust default energy for cosmic
+            if (mode === 'cosmic') {
+                document.getElementById('energy').value = 500;
+                document.getElementById('energy').dispatchEvent(new Event('input'));
+            }
+
+            resetSimulation();
+        }
+
+        document.getElementById('btnTunneling').addEventListener('click', () => setMode('tunneling', 'btnTunneling'));
+        document.getElementById('btnDecay').addEventListener('click', () => setMode('decay', 'btnDecay'));
+        document.getElementById('btnCosmic').addEventListener('click', () => setMode('cosmic', 'btnCosmic'));
+
+        // CSV Export
+        document.getElementById('btnExport').addEventListener('click', () => {
+            if (state.dataLog.length === 0) {
+                alert("No data logged yet. Let the simulation run.");
+                return;
+            }
+
+            const headers = Object.keys(state.dataLog[0]).join(',');
+            const rows = state.dataLog.map(obj => Object.values(obj).join(',')).join('\n');
+            const csvContent = headers + '\n' + rows;
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `astroquantum_sim_data_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // Initialize
+        resetSimulation();
+        requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced AstroQuantum Physics Engine</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-panel: #141414;
+            --bg-card: #1f1f1f;
+            --accent-blue: #007acc;
+            --accent-green: #28a745;
+            --accent-purple: #8a2be2;
+            --text-main: #e0e0e0;
+            --text-muted: #888888;
+            --border-color: #2a2a2a;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        #sidebar {
+            width: 340px;
+            background-color: var(--bg-panel);
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #canvas-container {
+            flex: 2;
+            position: relative;
+            background-color: #000000;
+            overflow: hidden;
+        }
+
+        #simCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #bottom-panel {
+            flex: 1;
+            background-color: var(--bg-panel);
+            border-top: 1px solid var(--border-color);
+            padding: 15px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #chartCanvas {
+            flex: 1;
+            width: 100%;
+            display: block;
+            background-color: #0d0d0d;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: crosshair;
+        }
+
+        #info-panel {
+            width: 400px;
+            background-color: var(--bg-panel);
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            border-left: 1px solid var(--border-color);
+        }
+
+        /* Typography & Controls */
+        h1, h2, h3, h4 {
+            margin: 0 0 10px 0;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        h1 { font-size: 20px; border-bottom: 2px solid var(--accent-blue); padding-bottom: 10px; }
+        h2 { font-size: 16px; color: var(--accent-purple); }
+        h3 { font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--bg-card);
+            color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        .control-group {
+            background-color: var(--bg-card);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: none; /* Hidden by default, shown by JS */
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .control-value {
+            font-family: monospace;
+            color: var(--accent-blue);
+        }
+
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--accent-blue);
+        }
+
+        button {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background 0.2s;
+            margin-bottom: 10px;
+        }
+
+        button:hover { background-color: #005f9e; }
+        button.success { background-color: var(--accent-green); }
+        button.success:hover { background-color: #218838; }
+
+        /* Educational Content Styles */
+        .info-card {
+            background-color: var(--bg-card);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .equation {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000;
+            padding: 10px;
+            display: block;
+            text-align: center;
+            margin: 10px 0;
+            color: #569cd6;
+            border-radius: 4px;
+            border: 1px solid #333;
+            font-size: 15px;
+            overflow-x: auto;
+        }
+
+        .analogy {
+            border-left: 3px solid var(--accent-purple);
+            padding-left: 10px;
+            margin-top: 10px;
+            color: #cccccc;
+            font-style: italic;
+        }
+
+        /* Overlays */
+        #sim-overlay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: white;
+            font-family: monospace;
+            font-size: 14px;
+            pointer-events: none;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Chart Tooltip */
+        #chart-tooltip {
+            position: absolute;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid #555;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            pointer-events: none;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Sidebar: Controls -->
+    <div id="sidebar">
+        <h1>AstroQuantum Engine</h1>
+        
+        <div>
+            <h3>Scenario Preset</h3>
+            <select id="scenarioSelect">
+                <option value="neutrino">Neutrino Oscillations (PMNS)</option>
+                <option value="cherenkov">Cherenkov Radiation</option>
+                <option value="wimp">Dark Matter WIMP Scattering</option>
+            </select>
+        </div>
+
+        <div id="dynamic-controls">
+            <h3>Parameters</h3>
+            <!-- Sliders dynamically populated by JS -->
+            <div class="control-group" id="ctrl-group-0">
+                <div class="control-header">
+                    <label id="lbl-0">Param 1</label>
+                    <span class="control-value" id="val-0">0</span>
+                </div>
+                <input type="range" id="slider-0">
+            </div>
+            <div class="control-group" id="ctrl-group-1">
+                <div class="control-header">
+                    <label id="lbl-1">Param 2</label>
+                    <span class="control-value" id="val-1">0</span>
+                </div>
+                <input type="range" id="slider-1">
+            </div>
+            <div class="control-group" id="ctrl-group-2">
+                <div class="control-header">
+                    <label id="lbl-2">Param 3</label>
+                    <span class="control-value" id="val-2">0</span>
+                </div>
+                <input type="range" id="slider-2">
+            </div>
+            <div class="control-group" id="ctrl-group-3">
+                <div class="control-header">
+                    <label id="lbl-3">Param 4</label>
+                    <span class="control-value" id="val-3">0</span>
+                </div>
+                <input type="range" id="slider-3">
+            </div>
+        </div>
+
+        <div style="margin-top: auto;">
+            <button id="btnExport" class="success">Export Data to CSV</button>
+        </div>
+    </div>
+
+    <!-- Main Center: Simulation & Charts -->
+    <div id="main-content">
+        <div id="canvas-container">
+            <canvas id="simCanvas"></canvas>
+            <div id="sim-overlay">
+                Scenario: <span id="overlay-mode">Loading...</span><br>
+                Active Particles: <span id="overlay-count">0</span><br>
+                Sim Time: <span id="overlay-time">0.00</span>s
+            </div>
+        </div>
+        <div id="bottom-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3>Real-time Analytics</h3>
+                <span style="font-size: 12px; color: var(--text-muted);">Blue: Total Energy | Red: Particle Count (Hover for details)</span>
+            </div>
+            <canvas id="chartCanvas"></canvas>
+            <div id="chart-tooltip"></div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar: Educational Content -->
+    <div id="info-panel">
+        <h1>Information Module</h1>
+        <div id="dynamic-info">
+            <!-- Content injected by JS -->
+        </div>
+    </div>
+
+    <!-- Physics Engine & Application Logic -->
+    <script>
+        /**
+         * ==========================================
+         * CORE ENGINE SETUP & UTILITIES
+         * ==========================================
+         */
+        const simCanvas = document.getElementById('simCanvas');
+        const simCtx = simCanvas.getContext('2d', { alpha: false }); // Optimize for solid background
+        const chartCanvas = document.getElementById('chartCanvas');
+        const chartCtx = chartCanvas.getContext('2d');
+        const tooltip = document.getElementById('chart-tooltip');
+
+        let globalTime = 0;
+        const DT = 0.016; // 60 FPS delta time
+        let chartData = [];
+        const MAX_CHART_POINTS = 400;
+        let dataLog = []; // For CSV export
+
+        function resizeCanvases() {
+            const container = document.getElementById('canvas-container');
+            simCanvas.width = container.clientWidth;
+            simCanvas.height = container.clientHeight;
+            
+            const bottomPanel = document.getElementById('bottom-panel');
+            chartCanvas.width = bottomPanel.clientWidth - 30;
+            chartCanvas.height = bottomPanel.clientHeight - 50;
+        }
+        window.addEventListener('resize', resizeCanvases);
+        resizeCanvases();
+
+        // Chart Hover Logic
+        let chartHoverX = -1;
+        let chartHoverY = -1;
+        chartCanvas.addEventListener('mousemove', (e) => {
+            const rect = chartCanvas.getBoundingClientRect();
+            chartHoverX = e.clientX - rect.left;
+            chartHoverY = e.clientY - rect.top;
+        });
+        chartCanvas.addEventListener('mouseleave', () => {
+            chartHoverX = -1;
+            tooltip.style.display = 'none';
+        });
+
+        /**
+         * ==========================================
+         * MODULAR SCENARIO ARCHITECTURE
+         * ==========================================
+         */
+        class ScenarioManager {
+            constructor() {
+                this.scenarios = {};
+                this.current = null;
+            }
+
+            register(id, scenario) {
+                this.scenarios[id] = scenario;
+            }
+
+            load(id) {
+                if (this.current) {
+                    this.current.cleanup();
+                }
+                this.current = this.scenarios[id];
+                
+                // Hide all sliders first
+                for(let i=0; i<4; i++) {
+                    document.getElementById(`ctrl-group-${i}`).style.display = 'none';
+                }
+
+                // Setup UI for new scenario
+                this.current.setupUI();
+                this.current.updateInfoPanel();
+                
+                // Reset global state
+                globalTime = 0;
+                chartData = [];
+                dataLog = [];
+                simCtx.fillStyle = '#000000';
+                simCtx.fillRect(0, 0, simCanvas.width, simCanvas.height);
+                
+                this.current.init();
+                document.getElementById('overlay-mode').innerText = this.current.name;
+            }
+
+            update() {
+                if (this.current) this.current.update(DT);
+            }
+
+            draw() {
+                if (this.current) this.current.draw(simCtx);
+            }
+        }
+
+        // Utility to configure a slider
+        function configureSlider(index, label, min, max, step, val, unit, onChange) {
+            const group = document.getElementById(`ctrl-group-${index}`);
+            const lbl = document.getElementById(`lbl-${index}`);
+            const valSpan = document.getElementById(`val-${index}`);
+            const slider = document.getElementById(`slider-${index}`);
+            
+            group.style.display = 'block';
+            lbl.innerText = label;
+            slider.min = min;
+            slider.max = max;
+            slider.step = step;
+            slider.value = val;
+            valSpan.innerText = val + unit;
+
+            // Remove old listeners by cloning
+            const newSlider = slider.cloneNode(true);
+            slider.parentNode.replaceChild(newSlider, slider);
+            
+            newSlider.addEventListener('input', (e) => {
+                const v = parseFloat(e.target.value);
+                valSpan.innerText = v + unit;
+                onChange(v);
+            });
+        }
+
+        /**
+         * ==========================================
+         * ADVANCED PHYSICS SCENARIOS
+         * ==========================================
+         */
+
+        // ---------------------------------------------------------
+        // 1. Neutrino Oscillations (PMNS Matrix)
+        // ---------------------------------------------------------
+        class NeutrinoScenario {
+            constructor() {
+                this.name = "Neutrino Oscillations";
+                this.particles = [];
+                // Standard PMNS approximations
+                this.E = 1.0; // GeV
+                this.L_scale = 100; // km per pixel
+                this.theta12 = 33.8 * Math.PI / 180;
+                this.theta23 = 45.0 * Math.PI / 180;
+                this.theta13 = 8.6 * Math.PI / 180;
+                this.dm21 = 7.53e-5; // eV^2
+                this.dm31 = 2.53e-3; // eV^2
+            }
+
+            setupUI() {
+                configureSlider(0, "Energy (E)", 0.1, 5.0, 0.1, this.E, " GeV", (v) => this.E = v);
+                configureSlider(1, "Distance Scale", 10, 500, 10, this.L_scale, " km/px", (v) => this.L_scale = v);
+                configureSlider(2, "Mixing Angle θ₁₂", 0, 90, 1, 33.8, "°", (v) => this.theta12 = v * Math.PI/180);
+                configureSlider(3, "Mass Diff Δm²₃₁", 1.0, 5.0, 0.1, 2.5, "e-3 eV²", (v) => this.dm31 = v * 1e-3);
+            }
+
+            updateInfoPanel() {
+                document.getElementById('dynamic-info').innerHTML = `
+                    <div class="info-card">
+                        <h2>Neutrino Oscillations (PMNS)</h2>
+                        <p>Neutrinos change their "flavor" (electron, muon, tau) as they travel. This is a purely quantum mechanical effect arising because flavor eigenstates are superpositions of mass eigenstates.</p>
+                        <span class="equation">
+                            P(ν<sub>α</sub> → ν<sub>β</sub>) = δ<sub>αβ</sub> - 4 ∑<sub>i>j</sub> Re(U<sup>*</sup><sub>αi</sub>U<sub>βi</sub>U<sub>αj</sub>U<sup>*</sup><sub>βj</sub>) sin²(Δm²<sub>ij</sub>L / 4E)
+                        </span>
+                        <p><strong>Variables:</strong><br>
+                        U = PMNS Mixing Matrix<br>
+                        Δm² = Mass squared difference<br>
+                        L = Distance traveled<br>
+                        E = Neutrino Energy</p>
+                        <p><strong>Colors:</strong> <span style="color:#007acc">Electron (e)</span>, <span style="color:#28a745">Muon (μ)</span>, <span style="color:#dc3545">Tau (τ)</span></p>
+                        <div class="analogy">
+                            <strong>Analogy:</strong> Imagine an ice cream scoop that is a mix of vanilla, chocolate, and strawberry. As it flies through the air, the flavors melt and mix at different rates. Depending on when you catch it (Distance L), it might taste mostly like chocolate, even if it started as vanilla.
+                        </div>
+                    </div>
+                `;
+            }
+
+            init() { this.particles = []; }
+            cleanup() { this.particles = []; }
+
+            // Calculate PMNS Matrix U based on angles (assuming delta_CP = 0 for simplicity)
+            getPMNS() {
+                const s12 = Math.sin(this.theta12), c12 = Math.cos(this.theta12);
+                const s23 = Math.sin(this.theta23), c23 = Math.cos(this.theta23);
+                const s13 = Math.sin(this.theta13), c13 = Math.cos(this.theta13);
+                
+                return [
+                    [c12*c13, s12*c13, s13],
+                    [-s12*c23 - c12*s23*s13, c12*c23 - s12*s23*s13, s23*c13],
+                    [s12*s23 - c12*c23*s13, -c12*s23 - s12*c23*s13, c23*c13]
+                ];
+            }
+
+            // Transition probability P(alpha -> beta)
+            // alpha, beta: 0=e, 1=mu, 2=tau
+            getProbability(alpha, beta, L_km, E_GeV) {
+                const U = this.getPMNS();
+                let P = (alpha === beta) ? 1.0 : 0.0;
+                
+                /*
+                 * PMNS Transition Probability Formula:
+                 * P(v_a -> v_b) = delta_ab - 4 * Sum_{i>j} [ Re(U_ai * U_bi * U_aj * U_bj) * sin^2(1.267 * dm^2_ij * L / E) ]
+                 * Note: 1.267 is the kinematic factor when dm^2 is in eV^2, L in km, and E in GeV.
+                 */
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < i; j++) {
+                        const term = U[alpha][i] * U[beta][i] * U[alpha][j] * U[beta][j];
+                        const dm2 = (i===1 && j===0) ? this.dm21 : 
+                                    (i===2 && j===0) ? this.dm31 : 
+                                    (this.dm31 - this.dm21);
+                        const phase = 1.267 * dm2 * L_km / E_GeV;
+                        P -= 4 * term * Math.pow(Math.sin(phase), 2);
+                    }
+                }
+                return Math.max(0, Math.min(1, P)); // Clamp floating point errors
+            }
+
+            update(dt) {
+                // Spawn new neutrinos (start as electron neutrinos = state 0)
+                if (Math.random() < 0.2 && this.particles.length < 500) {
+                    this.particles.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        x: 0,
+                        y: simCanvas.height * 0.1 + Math.random() * simCanvas.height * 0.8,
+                        vx: 3 + Math.random(),
+                        initialState: 0, // Electron
+                        currentState: 0,
+                        energy: this.E
+                    });
+                }
+
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    let p = this.particles[i];
+                    p.x += p.vx;
+
+                    // Calculate distance L in km
+                    const L = p.x * this.L_scale;
+
+                    // Calculate probabilities
+                    const Pe = this.getProbability(p.initialState, 0, L, p.energy);
+                    const Pmu = this.getProbability(p.initialState, 1, L, p.energy);
+                    // Ptau = 1 - Pe - Pmu
+
+                    // Quantum wavefunction collapse (Monte Carlo sampling for visual state)
+                    const rand = Math.random();
+                    if (rand < Pe) p.currentState = 0;
+                    else if (rand < Pe + Pmu) p.currentState = 1;
+                    else p.currentState = 2;
+
+                    if (p.x > simCanvas.width) this.particles.splice(i, 1);
+                }
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(0, 0, simCanvas.width, simCanvas.height);
+
+                this.particles.forEach(p => {
+                    // Colors: e = Blue, mu = Green, tau = Red
+                    if (p.currentState === 0) ctx.fillStyle = '#007acc';
+                    else if (p.currentState === 1) ctx.fillStyle = '#28a745';
+                    else ctx.fillStyle = '#dc3545';
+                    
+                    // Constraint: 2x2 fillRect for performance
+                    ctx.fillRect(p.x, p.y, 2, 2);
+                });
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 2. Cherenkov Radiation
+        // ---------------------------------------------------------
+        class CherenkovScenario {
+            constructor() {
+                this.name = "Cherenkov Radiation";
+                this.particles = [];
+                this.photons = [];
+                this.beta = 0.85; // v/c
+                this.n = 1.33; // Refractive index (Water)
+            }
+
+            setupUI() {
+                configureSlider(0, "Particle Velocity (β = v/c)", 0.5, 0.99, 0.01, this.beta, "", (v) => this.beta = v);
+                configureSlider(1, "Refractive Index (n)", 1.0, 2.0, 0.01, this.n, "", (v) => this.n = v);
+            }
+
+            updateInfoPanel() {
+                document.getElementById('dynamic-info').innerHTML = `
+                    <div class="info-card">
+                        <h2>Cherenkov Radiation</h2>
+                        <p>When a charged particle travels through a dielectric medium faster than the phase velocity of light in that medium (c/n), it emits electromagnetic radiation in a cone.</p>
+                        <span class="equation">
+                            cos(θ<sub>c</sub>) = 1 / (nβ)
+                        </span>
+                        <p><strong>Variables:</strong><br>
+                        θ<sub>c</sub> = Cherenkov emission angle<br>
+                        n = Refractive index of medium<br>
+                        β = Particle velocity relative to c (v/c)</p>
+                        <div class="analogy">
+                            <strong>Analogy:</strong> It is the optical equivalent of a sonic boom. When a jet flies faster than sound, it creates a shockwave cone of sound. When a particle flies faster than light <em>in that medium</em>, it creates a shockwave cone of blue light.
+                        </div>
+                    </div>
+                `;
+            }
+
+            init() { this.particles = []; this.photons = []; }
+            cleanup() { this.particles = []; this.photons = []; }
+
+            update(dt) {
+                const mediumStartX = simCanvas.width * 0.3;
+
+                // Spawn primary particle
+                if (this.particles.length === 0 || Math.random() < 0.02) {
+                    this.particles.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        x: 0,
+                        y: simCanvas.height / 2 + (Math.random() * 100 - 50),
+                        vx: this.beta * 10, // Scaled for visual speed
+                        energy: 1000
+                    });
+                }
+
+                // Update Primaries
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    let p = this.particles[i];
+                    p.x += p.vx;
+
+                    // Check Cherenkov condition inside medium
+                    if (p.x > mediumStartX) {
+                        /*
+                         * Cherenkov Angle Formula:
+                         * cos(theta_c) = 1 / (n * beta)
+                         * Emits only if beta * n > 1 (particle is faster than light in medium)
+                         */
+                        if (this.beta * this.n > 1) {
+                            const cosTheta = 1 / (this.beta * this.n);
+                            const theta = Math.acos(cosTheta);
+                            
+                            // Emit photons (probabilistic based on sin^2(theta) intensity)
+                            const intensity = 1 - Math.pow(cosTheta, 2);
+                            if (Math.random() < intensity * 0.5) {
+                                const photonSpeed = 10 / this.n; // Light is slower in medium
+                                // Emit up and down to form 2D cone
+                                this.photons.push({
+                                    x: p.x, y: p.y,
+                                    vx: Math.cos(theta) * photonSpeed,
+                                    vy: Math.sin(theta) * photonSpeed,
+                                    life: 1.0,
+                                    energy: 2.5 // eV (blue light)
+                                });
+                                this.photons.push({
+                                    x: p.x, y: p.y,
+                                    vx: Math.cos(-theta) * photonSpeed,
+                                    vy: Math.sin(-theta) * photonSpeed,
+                                    life: 1.0,
+                                    energy: 2.5
+                                });
+                            }
+                        }
+                    }
+
+                    if (p.x > simCanvas.width) this.particles.splice(i, 1);
+                }
+
+                // Update Photons
+                for (let i = this.photons.length - 1; i >= 0; i--) {
+                    let ph = this.photons[i];
+                    ph.x += ph.vx;
+                    ph.y += ph.vy;
+                    ph.life -= 0.01;
+                    if (ph.life <= 0 || ph.x > simCanvas.width || ph.y < 0 || ph.y > simCanvas.height) {
+                        this.photons.splice(i, 1);
+                    }
+                }
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(0, 0, simCanvas.width, simCanvas.height);
+
+                // Draw Medium (Water/Ice)
+                const mediumStartX = simCanvas.width * 0.3;
+                ctx.fillStyle = 'rgba(0, 50, 100, 0.2)';
+                ctx.fillRect(mediumStartX, 0, simCanvas.width - mediumStartX, simCanvas.height);
+                ctx.strokeStyle = '#0055aa';
+                ctx.beginPath(); ctx.moveTo(mediumStartX, 0); ctx.lineTo(mediumStartX, simCanvas.height); ctx.stroke();
+
+                // Draw Photons (Blue Cherenkov light)
+                ctx.fillStyle = '#00ffff';
+                this.photons.forEach(ph => {
+                    // Constraint: 1x1 fillRect
+                    ctx.fillRect(ph.x, ph.y, 1, 1);
+                });
+
+                // Draw Primaries
+                ctx.fillStyle = '#ffffff';
+                this.particles.forEach(p => {
+                    // Constraint: 2x2 fillRect
+                    ctx.fillRect(p.x, p.y, 2, 2);
+                });
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 3. Dark Matter WIMP Scattering
+        // ---------------------------------------------------------
+        class WIMPScenario {
+            constructor() {
+                this.name = "Dark Matter WIMP Scattering";
+                this.wimps = [];
+                this.targets = [];
+                this.wimpMass = 100; // GeV
+                this.targetMass = 131; // Xenon ~131 GeV
+                this.crossSection = 0.001; // Extremely low probability
+            }
+
+            setupUI() {
+                configureSlider(0, "WIMP Mass (GeV)", 10, 500, 10, this.wimpMass, "", (v) => this.wimpMass = v);
+                configureSlider(1, "Target Mass (GeV)", 10, 200, 1, this.targetMass, "", (v) => this.targetMass = v);
+                configureSlider(2, "Cross Section (Probability)", 0.0001, 0.01, 0.0001, this.crossSection, "", (v) => this.crossSection = v);
+            }
+
+            updateInfoPanel() {
+                document.getElementById('dynamic-info').innerHTML = `
+                    <div class="info-card">
+                        <h2>Dark Matter WIMP Scattering</h2>
+                        <p>Weakly Interacting Massive Particles (WIMPs) are dark matter candidates. They rarely interact with normal matter. Detectors look for the tiny nuclear recoil energy when a WIMP elastically scatters off a target nucleus (like Xenon).</p>
+                        <span class="equation">
+                            E<sub>recoil</sub> = (q²) / (2m<sub>T</sub>)
+                        </span>
+                        <p><strong>Variables:</strong><br>
+                        m<sub>W</sub> = WIMP Mass<br>
+                        m<sub>T</sub> = Target Nucleus Mass<br>
+                        σ = Scattering Cross-Section (Probability)</p>
+                        <div class="analogy">
+                            <strong>Analogy:</strong> Imagine shooting billions of microscopic ghost-bullets through a dense forest of bowling pins. 99.999% of the bullets pass right through the pins like they aren't there. But very rarely, one bullet slightly nudges a pin. We detect the dark matter by listening for the sound of that one pin moving.
+                        </div>
+                    </div>
+                `;
+            }
+
+            init() {
+                this.wimps = [];
+                this.targets = [];
+                // Create dense grid of target atoms
+                const spacing = 30;
+                for (let x = simCanvas.width * 0.2; x < simCanvas.width * 0.8; x += spacing) {
+                    for (let y = 50; y < simCanvas.height - 50; y += spacing) {
+                        this.targets.push({
+                            x: x + (Math.random()*10-5), 
+                            y: y + (Math.random()*10-5),
+                            vx: 0, vy: 0,
+                            recoilEnergy: 0
+                        });
+                    }
+                }
+            }
+            cleanup() { this.wimps = []; this.targets = []; }
+
+            update(dt) {
+                // Spawn WIMPs (invisible dark matter)
+                if (Math.random() < 0.5) {
+                    this.wimps.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        x: 0,
+                        y: Math.random() * simCanvas.height,
+                        vx: 8 + Math.random() * 4,
+                        vy: (Math.random() - 0.5) * 2,
+                        energy: 1000
+                    });
+                }
+
+                // Update Targets (friction to slow down recoil)
+                this.targets.forEach(t => {
+                    t.x += t.vx;
+                    t.y += t.vy;
+                    t.vx *= 0.95;
+                    t.vy *= 0.95;
+                    t.recoilEnergy *= 0.95;
+                });
+
+                // Update WIMPs & Check Collisions
+                for (let i = this.wimps.length - 1; i >= 0; i--) {
+                    let w = this.wimps[i];
+                    w.x += w.vx;
+                    w.y += w.vy;
+
+                    // Collision detection with grid
+                    for (let t of this.targets) {
+                        const dx = w.x - t.x;
+                        const dy = w.y - t.y;
+                        const distSq = dx*dx + dy*dy;
+
+                        // Interaction radius ~ 5px. Probability based on crossSection.
+                        if (distSq < 25 && Math.random() < this.crossSection) {
+                            /*
+                             * Elastic Collision Math for WIMP-Nucleus Scattering
+                             * Calculates the impulse (j) based on relative velocity and masses.
+                             */
+                            const dist = Math.sqrt(distSq);
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+                            
+                            const vRelX = w.vx - t.vx;
+                            const vRelY = w.vy - t.vy;
+                            const vRelN = vRelX * nx + vRelY * ny;
+                            
+                            if (vRelN < 0) {
+                                // Impulse scalar
+                                const j = -(2 * vRelN) / (1/this.wimpMass + 1/this.targetMass);
+                                
+                                // Apply impulse
+                                w.vx += (j * nx) / this.wimpMass;
+                                w.vy += (j * ny) / this.wimpMass;
+                                t.vx -= (j * nx) / this.targetMass;
+                                t.vy -= (j * ny) / this.targetMass;
+                                
+                                t.recoilEnergy = 1.0; // Trigger visual flash
+                            }
+                        }
+                    }
+
+                    if (w.x > simCanvas.width || w.y < 0 || w.y > simCanvas.height) {
+                        this.wimps.splice(i, 1);
+                    }
+                }
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.fillRect(0, 0, simCanvas.width, simCanvas.height);
+
+                // Draw Targets (Xenon atoms)
+                this.targets.forEach(t => {
+                    if (t.recoilEnergy > 0.1) {
+                        // Recoiling atom flashes bright green/yellow
+                        ctx.fillStyle = `rgba(173, 255, 47, ${t.recoilEnergy})`;
+                        ctx.fillRect(t.x-2, t.y-2, 4, 4);
+                    } else {
+                        // Stationary atoms are dim
+                        ctx.fillStyle = '#333333';
+                        ctx.fillRect(t.x, t.y, 2, 2);
+                    }
+                });
+
+                // Draw WIMPs (Faint purple to represent dark matter)
+                ctx.fillStyle = 'rgba(138, 43, 226, 0.3)';
+                this.wimps.forEach(w => {
+                    // Constraint: 1x1 fillRect
+                    ctx.fillRect(w.x, w.y, 1, 1);
+                });
+            }
+        }
+
+        /**
+         * ==========================================
+         * INITIALIZATION & MAIN LOOP
+         * ==========================================
+         */
+        const manager = new ScenarioManager();
+        manager.register('neutrino', new NeutrinoScenario());
+        manager.register('cherenkov', new CherenkovScenario());
+        manager.register('wimp', new WIMPScenario());
+
+        // Event Listeners
+        document.getElementById('scenarioSelect').addEventListener('change', (e) => {
+            manager.load(e.target.value);
+        });
+
+        document.getElementById('btnExport').addEventListener('click', () => {
+            if (dataLog.length === 0) { alert("No data logged yet."); return; }
+            const headers = Object.keys(dataLog[0]).join(',');
+            const rows = dataLog.map(obj => Object.values(obj).join(',')).join('\n');
+            const blob = new Blob([headers + '\n' + rows], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `astroquantum_${manager.current.name.replace(/\s+/g, '_')}_${Date.now()}.csv`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        });
+
+        // Analytics Chart Logic
+        function updateChartData() {
+            if (!manager.current) return;
+            
+            let totalEnergy = 0;
+            let activeCount = 0;
+            
+            // Generic particle counter across different scenario structures
+            const particles = manager.current.particles || manager.current.wimps || [];
+            activeCount = particles.length;
+            particles.forEach(p => totalEnergy += (p.energy || 0));
+
+            chartData.push({ time: globalTime, energy: totalEnergy, count: activeCount });
+            if (chartData.length > MAX_CHART_POINTS) chartData.shift();
+
+            // Log for CSV (throttle to 10% of frames to save memory)
+            if (Math.random() < 0.1 && dataLog.length < 50000 && particles.length > 0) {
+                const sample = particles[Math.floor(Math.random() * particles.length)];
+                dataLog.push({
+                    Time: globalTime.toFixed(3),
+                    Scenario: manager.current.name,
+                    TotalParticles: activeCount,
+                    SampleX: sample.x ? sample.x.toFixed(2) : 0,
+                    SampleY: sample.y ? sample.y.toFixed(2) : 0,
+                    SampleEnergy: sample.energy ? sample.energy.toFixed(2) : 0
+                });
+            }
+        }
+
+        function drawChart() {
+            chartCtx.fillStyle = '#0d0d0d';
+            chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+            
+            if (chartData.length === 0) return;
+
+            const maxE = Math.max(...chartData.map(d => d.energy), 100);
+            const maxC = Math.max(...chartData.map(d => d.count), 10);
+            const xStep = chartCanvas.width / Math.max(chartData.length - 1, 1);
+
+            // Draw Energy Line (Blue)
+            chartCtx.beginPath();
+            chartCtx.strokeStyle = '#007acc';
+            chartCtx.lineWidth = 1.5;
+            chartData.forEach((d, i) => {
+                const x = i * xStep;
+                const y = chartCanvas.height - (d.energy / maxE) * chartCanvas.height;
+                if (i === 0) chartCtx.moveTo(x, y); else chartCtx.lineTo(x, y);
+            });
+            chartCtx.stroke();
+
+            // Draw Count Line (Red)
+            chartCtx.beginPath();
+            chartCtx.strokeStyle = '#dc3545';
+            chartCtx.lineWidth = 1.5;
+            chartData.forEach((d, i) => {
+                const x = i * xStep;
+                const y = chartCanvas.height - (d.count / maxC) * chartCanvas.height;
+                if (i === 0) chartCtx.moveTo(x, y); else chartCtx.lineTo(x, y);
+            });
+            chartCtx.stroke();
+
+            // Hover Tooltip & Crosshair
+            if (chartHoverX >= 0 && chartHoverX <= chartCanvas.width) {
+                let index = Math.round(chartHoverX / xStep);
+                if (index < 0) index = 0;
+                if (index >= chartData.length) index = chartData.length - 1;
+                
+                const pt = chartData[index];
+                const x = index * xStep;
+
+                // Vertical Crosshair Line
+                chartCtx.beginPath();
+                chartCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                chartCtx.lineWidth = 1;
+                chartCtx.setLineDash([5, 5]);
+                chartCtx.moveTo(x, 0);
+                chartCtx.lineTo(x, chartCanvas.height);
+                chartCtx.stroke();
+                chartCtx.setLineDash([]);
+
+                // Draw points on the lines
+                const yE = chartCanvas.height - (pt.energy / maxE) * chartCanvas.height;
+                const yC = chartCanvas.height - (pt.count / maxC) * chartCanvas.height;
+                
+                chartCtx.beginPath();
+                chartCtx.fillStyle = '#007acc';
+                chartCtx.arc(x, yE, 4, 0, Math.PI * 2);
+                chartCtx.fill();
+                
+                chartCtx.beginPath();
+                chartCtx.fillStyle = '#dc3545';
+                chartCtx.arc(x, yC, 4, 0, Math.PI * 2);
+                chartCtx.fill();
+
+                // Tooltip Box
+                const tooltipW = 150;
+                const tooltipH = 70;
+                let tooltipX = chartHoverX + 15;
+                let tooltipY = chartHoverY + 15;
+                
+                // Keep tooltip inside canvas bounds
+                const rect = chartCanvas.getBoundingClientRect();
+                if (tooltipX + tooltipW > rect.width) tooltipX = chartHoverX - tooltipW - 15;
+                if (tooltipY + tooltipH > rect.height) tooltipY = chartHoverY - tooltipH - 15;
+
+                tooltip.style.display = 'block';
+                tooltip.style.left = tooltipX + 'px';
+                tooltip.style.top = tooltipY + 'px';
+                
+                tooltip.innerHTML = `Time:   ${pt.time.toFixed(2)}s\nCount:  ${pt.count}\nEnergy: ${pt.energy.toFixed(0)} eV`;
+            }
+        }
+
+        function updateUI() {
+            if (!manager.current) return;
+            const particles = manager.current.particles || manager.current.wimps || [];
+            document.getElementById('overlay-count').innerText = particles.length;
+            document.getElementById('overlay-time').innerText = globalTime.toFixed(2);
+        }
+
+        function loop() {
+            globalTime += DT;
+            manager.update();
+            manager.draw();
+            updateChartData();
+            drawChart();
+            updateUI();
+            requestAnimationFrame(loop);
+        }
+
+        // Start
+        manager.load('neutrino');
+        requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>
