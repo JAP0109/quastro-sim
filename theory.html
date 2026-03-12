@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theoretical Foundations - AstroQuantum Hub</title>
+    
+    <!-- MathJax CDN for LaTeX rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-panel: #141414;
+            --bg-card: #1f1f1f;
+            --accent-blue: #007acc;
+            --accent-green: #28a745;
+            --accent-purple: #8a2be2;
+            --text-main: #e0e0e0;
+            --text-muted: #888888;
+            --border-color: #2a2a2a;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--bg-panel);
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #ffffff;
+            border-bottom: 2px solid var(--accent-blue);
+            padding-bottom: 5px;
+            display: inline-block;
+        }
+
+        .back-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #3399ff;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        section {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            color: var(--accent-purple);
+            margin-top: 0;
+            font-size: 22px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        p {
+            font-size: 16px;
+            color: #cccccc;
+        }
+
+        .equation-box {
+            background-color: #000000;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            text-align: center;
+            font-size: 18px;
+            color: #569cd6;
+        }
+
+        .analogy-box {
+            background-color: var(--bg-card);
+            border-left: 4px solid var(--accent-blue);
+            padding: 15px 20px;
+            margin-top: 20px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .analogy-box strong {
+            color: #ffffff;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .analogy-box p {
+            margin: 0;
+            font-style: italic;
+            color: #bbbbbb;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Theoretical Foundations</h1>
+        
+    </header>
+
+    <main>
+        <!-- Section 1: Alpha Decay -->
+        <section>
+            <h2>1. Alpha Decay</h2>
+            <p>
+                Alpha decay is a type of radioactive decay in which an atomic nucleus emits an alpha particle (a helium nucleus consisting of two protons and two neutrons) and thereby transforms or 'decays' into a different atomic nucleus. This process is fundamentally probabilistic and governed by quantum mechanics.
+            </p>
+            <p>
+                The rate at which a collection of radioactive atoms decays is proportional to the number of atoms present. This leads to the exponential <strong>Radioactive Decay Law</strong>:
+            </p>
+            
+            <div class="equation-box">
+                $$ N(t) = N_0 e^{-\lambda t} $$
+            </div>
+            
+            <p>
+                Where:
+                <ul>
+                    <li>\( N(t) \) is the number of undecayed nuclei remaining at time \( t \).</li>
+                    <li>\( N_0 \) is the initial number of nuclei at \( t = 0 \).</li>
+                    <li>\( \lambda \) is the decay constant, specific to the isotope.</li>
+                </ul>
+            </p>
+
+            <div class="analogy-box">
+                <strong>Real-World Analogy</strong>
+                <p>
+                    Imagine popping a bag of popcorn in the microwave. You know that over the course of 3 minutes, almost all the kernels will pop. You can even predict the overall rate at which they pop (a bell curve of popping sounds). However, it is physically impossible to look at one specific, individual kernel and predict exactly <em>which second</em> it will pop. Alpha decay works the same way: we know the half-life of the bulk material, but the exact moment a single atom decays is entirely random.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 2: Quantum Tunneling -->
+        <section>
+            <h2>2. Quantum Tunneling</h2>
+            <p>
+                Quantum tunneling is a quantum mechanical phenomenon where a subatomic particle passes through a potential barrier that it classically does not have enough energy to surmount. Because particles exhibit wave-like properties, their probability wavefunction doesn't abruptly drop to zero at a barrier; instead, it decays exponentially inside the barrier. If the barrier is thin enough, a non-zero portion of the wave emerges on the other side.
+            </p>
+            <p>
+                The probability of a particle successfully tunneling through a rectangular potential barrier is given by the <strong>Transmission Coefficient</strong>:
+            </p>
+
+            <div class="equation-box">
+                $$ T \approx \exp\left(-\frac{2a}{\hbar}\sqrt{2m(V-E)}\right) $$
+            </div>
+
+            <p>
+                Where:
+                <ul>
+                    <li>\( T \) is the transmission probability.</li>
+                    <li>\( a \) is the width of the barrier.</li>
+                    <li>\( m \) is the mass of the particle.</li>
+                    <li>\( V \) is the potential energy of the barrier.</li>
+                    <li>\( E \) is the kinetic energy of the incident particle (\( E < V \)).</li>
+                    <li>\( \hbar \) is the reduced Planck's constant.</li>
+                </ul>
+            </p>
+
+            <div class="analogy-box">
+                <strong>Real-World Analogy</strong>
+                <p>
+                    Imagine throwing a tennis ball at a solid, 10-foot-thick brick wall. In classical physics, the ball will bounce back 100% of the time because you didn't throw it hard enough to break the wall. In quantum mechanics, the tennis ball acts like a blurry wave of probability. When it hits the wall, a tiny fraction of that "blurriness" leaks through to the other side. This means there is an infinitesimally small, but strictly non-zero, chance that the ball will simply materialize on the other side of the wall without breaking it.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 3: Neutrino Oscillations -->
+        <section>
+            <h2>3. Neutrino Oscillations</h2>
+            <p>
+                Neutrinos are elusive, nearly massless particles that come in three "flavors": electron (\( \nu_e \)), muon (\( \nu_\mu \)), and tau (\( \nu_\tau \)). As a neutrino travels through space, it can spontaneously change from one flavor to another. This happens because the flavor states are actually quantum superpositions of three distinct mass states (\( m_1, m_2, m_3 \)) which propagate at slightly different speeds.
+            </p>
+            <p>
+                For a simplified two-flavor system, the <strong>Transition Probability</strong> of a neutrino changing from flavor \( \alpha \) to flavor \( \beta \) is:
+            </p>
+
+            <div class="equation-box">
+                $$ P(\nu_\alpha \rightarrow \nu_\beta) = \sin^2(2\theta) \sin^2\left(\frac{\Delta m^2 L}{4E}\right) $$
+            </div>
+
+            <p>
+                Where:
+                <ul>
+                    <li>\( \theta \) is the mixing angle between the two states.</li>
+                    <li>\( \Delta m^2 \) is the difference in the squares of their masses (\( m_2^2 - m_1^2 \)).</li>
+                    <li>\( L \) is the distance the neutrino has traveled.</li>
+                    <li>\( E \) is the energy of the neutrino.</li>
+                </ul>
+            </p>
+
+            <div class="analogy-box">
+                <strong>Real-World Analogy</strong>
+                <p>
+                    Imagine an ice cream scoop that is a magical, quantum mixture of vanilla, chocolate, and strawberry. As you throw this scoop through the air, the different flavors melt and mix at different rates. If your friend catches it 10 feet away, it might taste mostly like chocolate. If another friend catches it 20 feet away, it might taste like strawberry. The flavor of the ice cream "oscillates" depending on the distance it travels (L) and how fast you threw it (E).
+                </p>
+            </div>
+        </section>
+    </main>
+
+</body>
+</html>
