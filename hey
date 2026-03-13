@@ -1,0 +1,5 @@
+Hi everyone, I'm currently in high school, but I've been diving into some heavier university-level concepts. I couldn't find many good, free visualizers for things like particle decay and neutrino oscillations, so I tried building my own using raw JavaScript and an HTML5 canvas.
+It handles about 10,000 particles and I tried to implement the actual quantum tunneling transmission probability equations.
+Since I'm still learning, I'd love it if anyone here could take a look at the simulation and tell me if the physics/math behaves realistically, or if I completely messed up the Cherenkov radiation angles!
+You can run it right in your browser here: https://jap0109.github.io/quastro-sim/
+Any feedback is hugely appreciated!
